@@ -2,6 +2,7 @@ package jp.co.ryo.hashioka.todo.ui.todo
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.firebase.auth.FirebaseUser
 import jp.co.ryo.hashioka.todo.R
 
 import jp.co.ryo.hashioka.todo.ui.todo.dummy.DummyContent
@@ -21,8 +23,8 @@ import jp.co.ryo.hashioka.todo.ui.todo.dummy.DummyContent.DummyItem
  */
 class TodoListFragment : Fragment() {
 
-    // TODO: Customize parameters
-    private var columnCount = 1
+    private var user: FirebaseUser? = null
+    private var todoModel: TodoModel? = null
 
     private var listener: OnListFragmentInteractionListener? = null
 
@@ -30,8 +32,13 @@ class TodoListFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
-            columnCount = it.getInt(ARG_COLUMN_COUNT)
+            user = it.getParcelable(ARG_USER)
         }
+        if(user==null) {
+            Log.w(TAG, "ユーザが指定されていません。")
+            return
+        }
+        todoModel = TodoModel(user!!)
     }
 
     override fun onCreateView(
@@ -43,11 +50,16 @@ class TodoListFragment : Fragment() {
         // Set the adapter
         if (view is RecyclerView) {
             with(view) {
-                layoutManager = when {
-                    columnCount <= 1 -> LinearLayoutManager(context)
-                    else -> GridLayoutManager(context, columnCount)
-                }
-                adapter = MyTodoListRecyclerViewAdapter(TodoContent.ITEMS, listener)
+                layoutManager = LinearLayoutManager(context)
+//                when {
+//                    columnCount <= 1 -> LinearLayoutManager(context)
+//                    else -> GridLayoutManager(context, columnCount)
+//                }
+                todoModel?.getTodoList({
+                    adapter = MyTodoListRecyclerViewAdapter(it, listener)
+                }, {
+                    Log.w(TAG, "TodoList の取得に失敗しました。")
+                })
             }
         }
         return view
@@ -79,21 +91,20 @@ class TodoListFragment : Fragment() {
      * for more information.
      */
     interface OnListFragmentInteractionListener {
-        // TODO: Update argument type and name
-        fun onListFragmentInteraction(item: TodoContent.TodoItem?)
+        fun onListFragmentInteraction(item: TodoModel.Todo?)
     }
 
     companion object {
 
-        // TODO: Customize parameter argument names
-        const val ARG_COLUMN_COUNT = "column-count"
+        private const val TAG = "TodoListFragment"
 
-        // TODO: Customize parameter initialization
+        private const val ARG_USER = "user"
+
         @JvmStatic
-        fun newInstance(columnCount: Int) =
+        fun newInstance(user: FirebaseUser) =
             TodoListFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(ARG_COLUMN_COUNT, columnCount)
+                    putParcelable(ARG_USER, user)
                 }
             }
     }

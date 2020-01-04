@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import com.google.firebase.auth.FirebaseUser
 import jp.co.ryo.hashioka.todo.ui.config.AddCategoryFragment
 import jp.co.ryo.hashioka.todo.ui.todo.TodoListFragment
 
@@ -12,7 +13,11 @@ import jp.co.ryo.hashioka.todo.ui.todo.TodoListFragment
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-class SectionsPagerAdapter(private val context: Context, fm: FragmentManager) :
+class SectionsPagerAdapter(
+    private val context: Context,
+    private val user: FirebaseUser,
+    fm: FragmentManager
+) :
     FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
     val testCategoryList = listOf("Category1", "Category2", "Category3")
@@ -38,7 +43,7 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager) :
         return if(position == count-1) {
             AddCategoryFragment.newInstance("param1", "param2")
         } else {
-            TodoListFragment.newInstance(1)
+            TodoListFragment.newInstance(user)
         }
     }
 

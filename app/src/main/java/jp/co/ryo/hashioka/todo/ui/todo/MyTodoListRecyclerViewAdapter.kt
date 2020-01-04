@@ -18,7 +18,7 @@ import kotlinx.android.synthetic.main.fragment_todolist.view.*
  * TODO: Replace the implementation with code for your data type.
  */
 class MyTodoListRecyclerViewAdapter(
-    private val mValues: List<TodoContent.TodoItem>,
+    private val mValues: List<TodoModel.Todo>,
     private val mListener: OnListFragmentInteractionListener?
 ) : RecyclerView.Adapter<MyTodoListRecyclerViewAdapter.ViewHolder>() {
 
@@ -26,7 +26,7 @@ class MyTodoListRecyclerViewAdapter(
 
     init {
         mOnClickListener = View.OnClickListener { v ->
-            val item = v.tag as TodoContent.TodoItem
+            val item = v.tag as TodoModel.Todo
             // Notify the active callbacks interface (the activity, if the fragment is attached to
             // one) that an item has been selected.
             mListener?.onListFragmentInteraction(item)

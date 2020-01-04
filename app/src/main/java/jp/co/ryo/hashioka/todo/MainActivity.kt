@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(),
         transaction.commit()
 
         // タブの生成
-        val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
+        val sectionsPagerAdapter = SectionsPagerAdapter(this, user, supportFragmentManager)
         val viewPager: ViewPager = findViewById(R.id.view_pager)
         viewPager.adapter = sectionsPagerAdapter
         val tabs: TabLayout = findViewById(R.id.tabs)
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity(),
         })
     }
 
-    override fun onListFragmentInteraction(item: TodoContent.TodoItem?) {
+    override fun onListFragmentInteraction(item: TodoModel.Todo?) {
         Log.d(TAG, "list is clicked!")
     }
 

@@ -1,13 +1,11 @@
 package jp.co.ryo.hashioka.todo.ui.todo
 
 import android.util.Log
-import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.firestore.QuerySnapshot
-
 
 class TodoModel(
     private val user : FirebaseUser
@@ -25,10 +23,10 @@ class TodoModel(
         val id : String?,
         val text : String,
         val category : String,
-        val timeLimit : Date?,
+        val timeLimit : Timestamp?,
         val isCompleted : Boolean?,
-        val createDateTime : Date?,
-        val updateDateTime : Date?
+        val createDateTime : Timestamp?,
+        val updateDateTime : Timestamp?
         )
 
     /**
@@ -114,6 +112,29 @@ class TodoModel(
                 Log.d(TAG, "get failed with ", exception)
                 error?.invoke(exception)
             }
+    }
+
+    fun getTodoList(
+        success: ((data: List<Todo>) -> Unit)?,
+        error: ((e: Exception) -> Unit)?
+    ) {
+        getList({
+            success?.invoke(it.map { mapToTodo(it) })
+        }, {
+            error?.invoke(it)
+        })
+    }
+
+    private fun mapToTodo(map: Map<String, Any>): Todo {
+        return Todo(
+            map[KEY_ID] as String?,
+            map[KEY_TEXT] as String,
+            map[KEY_CATEGORY] as String,
+            map[KEY_TIMELIMIT] as Timestamp?,
+            map[KEY_IS_COMPLETED] as Boolean,
+            map[KEY_CREATE_AT] as Timestamp?,
+            map[KEY_UPDATE_AT] as Timestamp?
+        )
     }
 
     /**

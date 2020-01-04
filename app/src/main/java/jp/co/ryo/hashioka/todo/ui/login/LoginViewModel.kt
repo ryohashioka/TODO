@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import jp.co.ryo.hashioka.todo.R
 import jp.co.ryo.hashioka.todo.data.LoginRepository
+import java.lang.Exception
 
 class LoginViewModel(
     private val loginRepository: LoginRepository
@@ -37,8 +38,8 @@ class LoginViewModel(
     fun signIn(
         email: String,
         password: String,
-        success: (() -> Unit)?,
-        error: (() -> Unit)?
+        success: ((user : FirebaseUser) -> Unit)?,
+        error: ((e : Exception) -> Unit)?
     ) {
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -46,7 +47,12 @@ class LoginViewModel(
                     // ログイン成功
                     Log.d(TAG, "signInWithEmail:success")
                     user = mAuth.currentUser
-                    success?.invoke()
+                    // ユーザが正常に取得できていなければ登録処理を行う
+                    if(user == null) {
+                        signUp(email, password, success, error)
+                        return@addOnCompleteListener
+                    }
+                    success?.invoke(user!!)
                 } else {
                     // ログイン失敗でサインアップする。
                     Log.w(TAG, "signInWithEmail:failure", task.exception)
@@ -58,8 +64,8 @@ class LoginViewModel(
     fun signUp(
         email: String,
         password: String,
-        success: (() -> Unit)?,
-        error: (() -> Unit)?
+        success: ((user : FirebaseUser) -> Unit)?,
+        error: ((e : Exception) -> Unit)?
     ) {
         mAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -67,18 +73,24 @@ class LoginViewModel(
                     // 登録成功
                     Log.d(TAG, "createUserWithEmail:success")
                     user = mAuth.currentUser
-                    success?.invoke()
+                    // ユーザが正常に取得できていなければ登録処理を行う
+                    if(user == null) {
+                        // 何らかのエラーが発生（基本あり得ない）
+                        error?.invoke(Exception())
+                        return@addOnCompleteListener
+                    }
+                    success?.invoke(user!!)
                 } else {
                     // 登録失敗
                     Log.w(TAG, "createUserWithEmail:failure", task.exception)
-                    error?.invoke()
+                    error?.invoke(task.exception!!)
                 }
             }
     }
 
     fun signInGoogle(
-        success: (() -> Unit)?,
-        error: (() -> Unit)?
+        success: ((user : FirebaseUser) -> Unit)?,
+        error: ((e : Exception) -> Unit)?
     ) {
         // TODO: ここに Google でログインする処理を追加
     }

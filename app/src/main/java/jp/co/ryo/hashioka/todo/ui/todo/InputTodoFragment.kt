@@ -66,7 +66,16 @@ class InputTodoFragment : Fragment(), View.OnClickListener {
                     Log.i(TAG, "TODO が入力されていません。")
                     listener?.onAddTodo(null)
                 } else {
-                    listener?.onAddTodo(TodoEntity(getTodoEditText()))
+                    listener?.onAddTodo(
+                        TodoModel.Todo(
+                            null,
+                            getTodoEditText(),
+                            "",
+                            null,
+                            null,
+                            null,
+                            null
+                        ))
                 }
             }
         }
@@ -84,7 +93,7 @@ class InputTodoFragment : Fragment(), View.OnClickListener {
     }
 
     interface OnAddTodoListener {
-        fun onAddTodo(todo: TodoEntity?)
+        fun onAddTodo(todo: TodoModel.Todo?)
     }
 
     companion object {

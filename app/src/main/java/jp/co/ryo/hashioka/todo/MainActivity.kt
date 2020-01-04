@@ -8,34 +8,34 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import androidx.viewpager.widget.ViewPager
 import androidx.appcompat.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-import androidx.core.view.get
 import jp.co.ryo.hashioka.todo.ui.config.AddCategoryFragment
 import jp.co.ryo.hashioka.todo.ui.main.SectionsPagerAdapter
-import jp.co.ryo.hashioka.todo.ui.todo.InputTodoFragment
-import jp.co.ryo.hashioka.todo.ui.todo.TodoContent
-import jp.co.ryo.hashioka.todo.ui.todo.TodoEntity
-import jp.co.ryo.hashioka.todo.ui.todo.TodoListFragment
-import jp.co.ryo.hashioka.todo.ui.todo.dummy.DummyContent
-import kotlinx.android.synthetic.main.activity_main.view.*
-import com.google.firebase.auth.FirebaseAuth
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import com.google.firebase.auth.FirebaseUser
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.widget.Toast
+import jp.co.ryo.hashioka.todo.ui.todo.*
 
 class MainActivity : AppCompatActivity(),
     TodoListFragment.OnListFragmentInteractionListener,
     AddCategoryFragment.OnFragmentInteractionListener,
     InputTodoFragment.OnAddTodoListener{
 
+    private lateinit var todoModel: TodoModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // LoginActivity から渡されるユーザを取得
+        // ユーザが取得できなければ何もしない。
+        val user = intent.getParcelableExtra<FirebaseUser>(KEY_USER)
+        if(user==null) {
+            Toast.makeText(
+                this, getText(R.string.error_get_user_failed),
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        todoModel = TodoModel(user)
 
         // TODO入力の生成
         val inputTodoFragment = InputTodoFragment.newInstance()
@@ -63,17 +63,26 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    override fun onAddTodo(todo: TodoEntity?) {
+    override fun onAddTodo(todo: TodoModel.Todo?) {
+        // todoが空なら登録処理を行わない。
         if(todo==null) {
-            Snackbar.make(findViewById(R.id.view_pager), "TODO を入力してください。", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+            Toast.makeText(
+                this, getText(R.string.msg_todo_is_empty),
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
-        Log.d(TAG, "TODO を追加！「${todo.text}」")
 
         // 表示中のタブの todolist に追加
-        val tabs: TabLayout = findViewById(R.id.tabs)
-        tabs[tabs.selectedTabPosition]
+        todoModel.add(todo, {
+            Log.d(TAG, "TODO を追加しました。UI の再描画を行います。")
+            // TODO: ここに UI 再描画処理を記述する
+        }, {
+            Toast.makeText(
+                this, getText(R.string.error_add_todo_failed),
+                Toast.LENGTH_SHORT
+            ).show()
+        })
     }
 
     override fun onListFragmentInteraction(item: TodoContent.TodoItem?) {
@@ -86,5 +95,7 @@ class MainActivity : AppCompatActivity(),
 
     companion object {
         private const val TAG = "MainActivity"
+
+        const val KEY_USER = "user"
     }
 }

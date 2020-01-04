@@ -15,22 +15,24 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
+import com.google.firebase.auth.FirebaseUser
 import jp.co.ryo.hashioka.todo.MainActivity
 
 import jp.co.ryo.hashioka.todo.R
+import java.lang.Exception
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var loginViewModel: LoginViewModel
 
-    private val loginSuccess : () -> Unit = {
+    private val loginSuccess : (user:FirebaseUser) -> Unit = {
         // MainActivity へ遷移する。
-        intentMainActivity()
+        intentMainActivity(it)
     }
-    private val loginError : () -> Unit = {
-        // エラーメッセージを表示する。
+    private val loginError : (e:Exception) -> Unit = {
+        // 認証失敗エラーメッセージを表示する。
         Toast.makeText(
-            this, "Authentication failed.",
+            this, getText(R.string.error_signin_failed),
             Toast.LENGTH_SHORT
         ).show()
     }
@@ -50,7 +52,7 @@ class LoginActivity : AppCompatActivity() {
 
         // ログイン済みならメイン画面へ遷移
         if(loginViewModel.isLoggedIn()) {
-            intentMainActivity()
+            intentMainActivity(loginViewModel.user!!)
             return
         }
 
@@ -148,8 +150,9 @@ class LoginActivity : AppCompatActivity() {
     /**
      * MainActivity へ遷移する処理
      */
-    private fun intentMainActivity() {
+    private fun intentMainActivity(user: FirebaseUser) {
         val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra(MainActivity.KEY_USER, user)
         startActivity(intent)
     }
 }

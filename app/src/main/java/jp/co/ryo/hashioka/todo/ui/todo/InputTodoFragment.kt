@@ -67,7 +67,7 @@ class InputTodoFragment : Fragment(), View.OnClickListener {
                     listener?.onAddTodo(null)
                 } else {
                     listener?.onAddTodo(
-                        TodoModel.Todo(
+                        TodoObject.Todo(
                             null,
                             getTodoEditText(),
                             "",
@@ -76,6 +76,7 @@ class InputTodoFragment : Fragment(), View.OnClickListener {
                             null,
                             null
                         ))
+                    resetTodoEditText()
                 }
             }
         }
@@ -92,8 +93,17 @@ class InputTodoFragment : Fragment(), View.OnClickListener {
         }
     }
 
+    /**
+     * TODO入力テキストに空文字をセット
+     */
+    private fun resetTodoEditText() {
+        if(view!=null) {
+            val editText = view!!.findViewById<EditText>(R.id.todoEditText).setText("")
+        }
+    }
+
     interface OnAddTodoListener {
-        fun onAddTodo(todo: TodoModel.Todo?)
+        fun onAddTodo(todo: TodoObject.Todo?)
     }
 
     companion object {

@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.google.firebase.auth.FirebaseUser
 import jp.co.ryo.hashioka.todo.ui.config.AddCategoryFragment
+import jp.co.ryo.hashioka.todo.ui.config.CategoryModel
 import jp.co.ryo.hashioka.todo.ui.todo.TodoListFragment
 
 /**
@@ -16,20 +17,16 @@ import jp.co.ryo.hashioka.todo.ui.todo.TodoListFragment
 class SectionsPagerAdapter(
     private val context: Context,
     private val user: FirebaseUser,
+    private var categoryList: List<CategoryModel.Category>,
     fm: FragmentManager
-) :
-    FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+) : FragmentPagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
-    val testCategoryList = listOf("Category1", "Category2", "Category3")
     var tabItems: ArrayList<String> = ArrayList()
 
     init {
         // "すべて" と "+" は必ず追加
         tabItems.add("すべて")
-
-        // TODO: どこかから現在のタブ一覧をすべて取得する
-        tabItems.addAll(testCategoryList)
-
+        tabItems.addAll(categoryList.map{ it.category })
         tabItems.add("＋")
     }
 
@@ -41,9 +38,9 @@ class SectionsPagerAdapter(
         // 最後以外は todolist 画面を表示
         // 最後はカテゴリ追加画面を表示
         return if(position == count-1) {
-            AddCategoryFragment.newInstance("param1", "param2")
+            AddCategoryFragment.newInstance(user)
         } else {
-            TodoListFragment.newInstance(user)
+            TodoListFragment.newInstance()
         }
     }
 

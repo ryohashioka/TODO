@@ -6,6 +6,9 @@
 
     <string name="todo_input_hint">TODO を入力してください。</string>
     <string name="todo_add_button">追加</string>
+    <string name="category_input_hint">カテゴリ名を入力してください。</string>
+    <string name="category_add_button">追加</string>
+
     <string name="title_activity_login">Login</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
@@ -22,4 +25,5 @@
     <string name="error_signin_failed">Failed to authentication.</string>
     <string name="error_get_user_failed">Failed to get user.</string>
     <string name="error_add_todo_failed">Failed to add todo.</string>
+    <string name="error_set_todo_failed">Failed to set todo.</string>
 </resources>

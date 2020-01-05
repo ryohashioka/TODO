@@ -19,62 +19,70 @@ class TodoModel(
         db.firestoreSettings = settings
     }
 
-    data class Todo(
-        val id : String?,
-        val text : String,
-        val category : String,
-        val timeLimit : Timestamp?,
-        val isCompleted : Boolean?,
-        val createDateTime : Timestamp?,
-        val updateDateTime : Timestamp?
-        )
-
     /**
      * TODOを追加する
      */
     fun add(
-        todo : Todo,
+        todo : TodoObject.Todo,
         success : (() -> Unit)?,
         error : ((e:Exception) -> Unit)?
     ) {
-        // Map を生成
-        val todoMap = hashMapOf(
-            KEY_ID to createId(),
-            KEY_TEXT to todo.text,
-            KEY_CATEGORY to todo.category,
-            KEY_IS_COMPLETED to false,
-            KEY_CREATE_AT to Date(),
-            KEY_UPDATE_AT to Date()
-        )
-        if(todo.timeLimit!=null) {
-            todoMap[KEY_TIMELIMIT] = todo.timeLimit
-        }
-
-        // todolist を取得
-        getList({
-            val todoList = ArrayList(it)
-            todoList.add(todoMap)
-            val todoListMap = mapOf(
-                FIRESTORE_FIELD to todoList
+        // 新しくTodoを追加
+        TodoObject.list.add(
+            TodoObject.Todo(
+                createId(),
+                todo.text,
+                todo.category,
+                todo.timeLimit,
+                false,
+                Timestamp(Date()),
+                Timestamp(Date())
             )
+        )
 
-            // firestore に追加
-            db.collection(FIRESTORE_COLLECTION).document(user.uid)
-                .set(todoListMap)
-                .addOnSuccessListener {
-                    Log.d(
-                        TAG,
-                        "DocumentSnapshot added."
-                    )
-                    success?.invoke()
-                }
-                .addOnFailureListener { e ->
-                    Log.w(TAG, "Error adding document", e)
-                    error?.invoke(e)
-                }
-        },{
-            // TODO: エラー処理を記述
-        })
+        set(success, error)
+    }
+
+    /**
+     * TODOを更新する
+     */
+    fun update(
+        todo : TodoObject.Todo,
+        success : (() -> Unit)?,
+        error : ((e:Exception) -> Unit)?
+    ) {
+        todo.updateDateTime = Timestamp(Date())
+        // 対象のtodoを取得
+        val index: Int = TodoObject.list.indexOfFirst {
+            todo.id.equals(it.id)
+        }
+        TodoObject.list[index] = todo
+
+        set(success, error)
+    }
+
+    /**
+     * Firestore にセットする
+     */
+    private fun set(
+        success : (() -> Unit)?,
+        error : ((e:Exception) -> Unit)?
+    ) {
+        val todoListMap = mapOf(
+            FIRESTORE_FIELD to TodoObject.list.map { todoToMap(it) }
+        )
+
+        // firestore に追加
+        db.collection(FIRESTORE_COLLECTION).document(user.uid)
+            .set(todoListMap)
+            .addOnSuccessListener {
+                Log.d(TAG,"DocumentSnapshot added.")
+                success?.invoke()
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error adding document", e)
+                error?.invoke(e)
+            }
     }
 
     /**
@@ -92,15 +100,19 @@ class TodoModel(
                     // データが正常に取得できなかった場合、空配列を返却
                     if(document.data == null) {
                         success?.invoke(listOf())
+                        return@addOnSuccessListener
                     }
                     val todoList = document.data!![FIRESTORE_FIELD]
                     if(todoList == null) {
                         success?.invoke(listOf())
+                        return@addOnSuccessListener
                     }
                     if(todoList is List<*>) {
                         success?.invoke(todoList as List<Map<String, Any>>)
+                        return@addOnSuccessListener
                     } else {
                         success?.invoke(listOf())
+                        return@addOnSuccessListener
                     }
                 } else {
                     Log.d(TAG, "No such document")
@@ -115,7 +127,7 @@ class TodoModel(
     }
 
     fun getTodoList(
-        success: ((data: List<Todo>) -> Unit)?,
+        success: ((data: List<TodoObject.Todo>) -> Unit)?,
         error: ((e: Exception) -> Unit)?
     ) {
         getList({
@@ -125,8 +137,8 @@ class TodoModel(
         })
     }
 
-    private fun mapToTodo(map: Map<String, Any>): Todo {
-        return Todo(
+    private fun mapToTodo(map: Map<String, Any>): TodoObject.Todo {
+        return TodoObject.Todo(
             map[KEY_ID] as String?,
             map[KEY_TEXT] as String,
             map[KEY_CATEGORY] as String,
@@ -134,6 +146,17 @@ class TodoModel(
             map[KEY_IS_COMPLETED] as Boolean,
             map[KEY_CREATE_AT] as Timestamp?,
             map[KEY_UPDATE_AT] as Timestamp?
+        )
+    }
+
+    private fun todoToMap(todo: TodoObject.Todo): Map<String, Any?> {
+        return mapOf(
+            KEY_ID to todo.id,
+            KEY_TEXT to todo.text,
+            KEY_CATEGORY to todo.category,
+            KEY_IS_COMPLETED to todo.isCompleted,
+            KEY_CREATE_AT to todo.createDateTime,
+            KEY_UPDATE_AT to todo.updateDateTime
         )
     }
 
